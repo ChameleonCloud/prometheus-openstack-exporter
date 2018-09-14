@@ -19,11 +19,25 @@ import dateutil.tz
 import requests
 import simplejson as json
 import logging
+from os import environ
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s:%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
 
+def get_python_osclient(service_name):
+
+    client_module = __import__('{}client'.format(service_name))
+    client = client_module.client.get_client(
+        1,
+        os_username=environ['OS_USERNAME'],
+        os_password=environ['OS_PASSWORD'],
+        os_auth_url='{}/v3'.format(environ['OS_AUTH_URL']),
+        os_project_name=environ['OS_PROJECT_NAME'],
+        os_user_domain_name=environ['OS_USER_DOMAIN_NAME'],
+        os_project_domain_name=environ['OS_PROJECT_DOMAIN_NAME'])
+
+    return client
 
 class KeystoneException(Exception):
     pass

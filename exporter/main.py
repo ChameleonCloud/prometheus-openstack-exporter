@@ -29,6 +29,7 @@ from neutron_agents import NeutronAgentStats
 from nova_services import NovaServiceStats
 from cinder_services import CinderServiceStats
 from hypervisor_stats import HypervisorStats
+from nodes import NodeSats
 
 import logging
 logging.basicConfig(
@@ -137,6 +138,8 @@ if __name__ == '__main__':
     oscache = OSCache(os_polling_interval, os_region)
     collectors.append(oscache)
 
+    node_stats = BareMetalStats(oscache, osclient)
+    collectors.append(node_stats)
     check_os_api = CheckOSApi(oscache, osclient)
     collectors.append(check_os_api)
     neutron_agent_stats = NeutronAgentStats(oscache, osclient)
