@@ -138,7 +138,7 @@ if __name__ == '__main__':
     oscache = OSCache(os_polling_interval, os_region)
     collectors.append(oscache)
 
-    node_stats = BareMetalStats(oscache, osclient)
+    node_stats = NodeStats(oscache, osclient)
     collectors.append(node_stats)
     check_os_api = CheckOSApi(oscache, osclient)
     collectors.append(check_os_api)

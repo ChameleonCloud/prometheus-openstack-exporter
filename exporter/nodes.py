@@ -1,10 +1,10 @@
 from base import OSBase
 from prometheus_client import CollectorRegistry, generate_latest, Gauge
-from osclient import get_python_osclient
-from itertools import chain
 import logging
-loggin.basicConfig(
-	)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s:%(levelname)s:%(message)s")
+logger = logging.getLogger(__name__)
 
 class NodeStats(OSBase):
 
@@ -25,51 +25,35 @@ class NodeStats(OSBase):
 
 		node_list = r.json().get("nodes", [])
 
-		nodes_total = (
-			self._nodes_total(node) for node in node_list)
-		nodes_provisioned = (
-			self._check_node_provisioned(node) for node in node_list)
-		nodes_maintenance = (
-			self._check_maintenance_mode(node) for node in node_list)
+		cache_stats = (
+			self._apply_labels(node) for node in node_list)
 		
-		cache_stats = chain(
-			nodes_total, nodes_provisioned, nodes_maintenance)
-
 		return list(cache_stats)
 
-	def _nodes_total(self, node):
+	def _labels(self, node):
 		return dict(
 			name=node['name'],
-			stat_name='total_nodes',
-			stat_value=1)
-
-	def _check_node_provisioned(self, node):
-		return dict(
-			name=node['name'],
-			stat_name='provisioned_nodes',
-			stat_value=int(node['provision_state'] == 'active'))
-
-	def _check_maintenance_mode(self, node):
-		return dict(
-			name=node['name'],
-			stat_name='maintenance_mode_nodes',
-			stat_value=int(node['maintenance']))
+			stat_value=1.0,
+			maintenance=node['maintenance'],
+			provision_state=node['provision_state'])
 
 	def get_cache_key(self):
 		return 'baremetal_stats'
 
 	def get_stats(self):
 		registry = CollectorRegistry()
-		labels = []
-		baremetal_stats_cache = self.get_cache_data()
-
-		for baremetal_stat in baremetal_stats_cache:
+		labels = ['region', 'name']
+		node_stats_cache = self.get_cache_data()
+		for node_stat in node_stats_cache:
 			stat_gauge = Gauge(
-				self.gauge_name_sanitize(
-					baremetal_stat['stat_name']),
-				'OpenStack Baremetal statistic',
+				'ironic_node_totals',
+				'OpenStack Ironic Nodes statistic',
 				labels,
 				registry=registry)
-			label_values = []
+			label_values = [
+				self.osclient.region,
+				node_stat.get('name', ''),
+				node_stat.get('maintenance', ''),
+				node_stat.get('provision_state', '')]
 			stat_gauge.labels(*label_values).set(baremetal_stat['stat_value'])
 		return generate_latest(registry)
