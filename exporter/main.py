@@ -29,7 +29,7 @@ from neutron_agents import NeutronAgentStats
 from nova_services import NovaServiceStats
 from cinder_services import CinderServiceStats
 from hypervisor_stats import HypervisorStats
-from nodes import NodeSats
+from nodes import NodeStats
 
 import logging
 logging.basicConfig(

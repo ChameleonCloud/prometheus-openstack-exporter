@@ -1,5 +1,6 @@
 from base import OSBase
 from prometheus_client import CollectorRegistry, generate_latest, Gauge
+from osclient import get_python_osclient
 import logging
 logging.basicConfig(
     level=logging.DEBUG,
@@ -8,37 +9,32 @@ logger = logging.getLogger(__name__)
 
 class NodeStats(OSBase):
 
-	VALUE_MAP = {
-		''
-	}
-
 	def __init__(self, oscache, osclient):
 		super(NodeStats, self).__init__(oscache, osclient)
 
 	def build_cache_data(self):
 
-		r = self.osclient.get('ironic', 'os-nodes/detail')
+		ironic_client = get_python_osclient('ironic')
 
 		if not r:
 			logger.warning("Could not get ironic nodes.")
 			return
 
-		node_list = r.json().get("nodes", [])
-
 		cache_stats = (
-			self._apply_labels(node) for node in node_list)
+			self._apply_labels(node) for node
+			in ironic_client.node.list())
 		
 		return list(cache_stats)
 
 	def _labels(self, node):
 		return dict(
-			name=node['name'],
+			name=node.name,
 			stat_value=1.0,
-			maintenance=node['maintenance'],
-			provision_state=node['provision_state'])
+			maintenance=node.maintenance,
+			provision_state=node.provision_state)
 
 	def get_cache_key(self):
-		return 'baremetal_stats'
+		return 'node_stats'
 
 	def get_stats(self):
 		registry = CollectorRegistry()
