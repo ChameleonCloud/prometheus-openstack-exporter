@@ -26,13 +26,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def get_python_osclient(service_name):
-
+    """Method for getting python client by service name."""
     client_module = __import__('{}client'.format(service_name))
     client = client_module.client.get_client(
         1,
         os_username=environ['OS_USERNAME'],
         os_password=environ['OS_PASSWORD'],
-        os_auth_url='{}/v3'.format(environ['OS_AUTH_URL']),
+        os_auth_url=environ['OS_AUTH_URL'],
         os_project_name=environ['OS_PROJECT_NAME'],
         os_user_domain_name=environ['OS_USER_DOMAIN_NAME'],
         os_project_domain_name=environ['OS_PROJECT_DOMAIN_NAME'])

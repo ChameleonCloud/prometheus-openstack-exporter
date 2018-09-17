@@ -37,7 +37,7 @@ class NodeStats(OSBase):
         node_stats_cache = self.get_cache_data()
         for node_stat in node_stats_cache:
             stat_gauge = Gauge(
-                'ironic_node_totals',
+                'openstack_node_totals',
                 'OpenStack Ironic Nodes statistic',
                 labels,
                 registry=registry)
