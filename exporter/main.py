@@ -29,7 +29,7 @@ from neutron_agents import NeutronAgentStats
 from nova_services import NovaServiceStats
 from cinder_services import CinderServiceStats
 from hypervisor_stats import HypervisorStats
-from nodes import NodeStats
+from node_stats import NodeStats
 
 import logging
 logging.basicConfig(
@@ -139,21 +139,21 @@ if __name__ == '__main__':
     collectors.append(oscache)
 
     node_stats = NodeStats(oscache, osclient)
-    #collectors.append(node_stats)
-    #check_os_api = CheckOSApi(oscache, osclient)
-    #collectors.append(check_os_api)
-    #neutron_agent_stats = NeutronAgentStats(oscache, osclient)
-    #collectors.append(neutron_agent_stats)
-    #cinder_service_stats = CinderServiceStats(oscache, osclient)
-    #collectors.append(cinder_service_stats)
-    #nova_service_stats = NovaServiceStats(oscache, osclient)
-    #collectors.append(nova_service_stats)
-    #hypervisor_stats = HypervisorStats(
-    #    oscache,
-    #    osclient,
-    #    os_cpu_overcomit_ratio,
-    #    os_ram_overcomit_ratio)
-    #collectors.append(hypervisor_stats)
+    collectors.append(node_stats)
+    check_os_api = CheckOSApi(oscache, osclient)
+    collectors.append(check_os_api)
+    neutron_agent_stats = NeutronAgentStats(oscache, osclient)
+    collectors.append(neutron_agent_stats)
+    cinder_service_stats = CinderServiceStats(oscache, osclient)
+    collectors.append(cinder_service_stats)
+    nova_service_stats = NovaServiceStats(oscache, osclient)
+    collectors.append(nova_service_stats)
+    hypervisor_stats = HypervisorStats(
+        oscache,
+        osclient,
+        os_cpu_overcomit_ratio,
+        os_ram_overcomit_ratio)
+    collectors.append(hypervisor_stats)
 
     oscache.start()
 

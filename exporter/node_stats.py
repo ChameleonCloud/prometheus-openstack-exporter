@@ -8,18 +8,13 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class NodeStats(OSBase):
+    """Class to report the statistics on OpenStack Nodes"""
 
     def __init__(self, oscache, osclient):
         super(NodeStats, self).__init__(oscache, osclient)
 
     def build_cache_data(self):
-
         ironic_client = get_python_osclient('ironic')
-        r = ironic_client.node.list()
-        if not r:
-            logger.warning("Could not get ironic nodes.")
-            return
-
         cache_stats = (
             self._apply_labels(node) for node
             in ironic_client.node.list())
@@ -38,7 +33,7 @@ class NodeStats(OSBase):
 
     def get_stats(self):
         registry = CollectorRegistry()
-        labels = ['region', 'name']
+        labels = ['region', 'name', 'maintenance', 'provision_state']
         node_stats_cache = self.get_cache_data()
         for node_stat in node_stats_cache:
             stat_gauge = Gauge(
@@ -51,5 +46,5 @@ class NodeStats(OSBase):
                 node_stat.get('name', ''),
                 node_stat.get('maintenance', ''),
                 node_stat.get('provision_state', '')]
-            stat_gauge.labels(*label_values).set(baremetal_stat['stat_value'])
+            stat_gauge.labels(*label_values).set(node_stat['stat_value'])
         return generate_latest(registry)
