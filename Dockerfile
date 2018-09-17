@@ -2,7 +2,7 @@ FROM          ubuntu:16.04
 MAINTAINER    Rakesh Patnaik (patsrakesh@gmail.com)
 
 RUN           apt-get -y update \
-              && apt-get -y install curl python-dateutil python-requests python-simplejson python-yaml python-prometheus-client\
+              && apt-get -y install curl python-dev python-ironicclient python-dateutil python-requests python-simplejson python-yaml python-prometheus-client\
               && apt-get clean \
               && rm -rf /var/lib/apt/lists/*
 
