@@ -30,6 +30,7 @@ def get_python_osclient(service_name):
     client_module = __import__('{}client'.format(service_name))
     client = client_module.client.get_client(
         1,
+        os_region_name=environ['OS_REGION_NAME'],
         os_username=environ['OS_USERNAME'],
         os_password=environ['OS_PASSWORD'],
         os_auth_url=environ['OS_AUTH_URL'],
