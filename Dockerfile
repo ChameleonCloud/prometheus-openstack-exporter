@@ -2,9 +2,12 @@ FROM          ubuntu:16.04
 MAINTAINER    Rakesh Patnaik (patsrakesh@gmail.com)
 
 RUN           apt-get -y update \
-              && apt-get -y install curl python-dev python-ironicclient python-dateutil python-requests python-simplejson python-yaml python-prometheus-client\
+              && apt-get -y install curl python-pip python-dev\
               && apt-get clean \
               && rm -rf /var/lib/apt/lists/*
+
+COPY          requirements.txt /usr/local/bin/
+RUN           pip install -r /usr/local/bin/requirements.txt  
 
 RUN           mkdir /usr/local/bin/exporter
 COPY          exporter /usr/local/bin/exporter
