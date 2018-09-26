@@ -1,5 +1,4 @@
 from base import OSBase
-from itertools import chain
 import json
 from osclient import session_adapter, get_ironic_client
 from prometheus_client import CollectorRegistry, generate_latest, Gauge
@@ -16,6 +15,7 @@ class NodeStats(OSBase):
         super(NodeStats, self).__init__(oscache, osclient)
 
     def build_cache_data(self):
+
         ironic_client = get_ironic_client()
         blazar_api = session_adapter('reservation')
         keystone_api = session_adapter('identity')

@@ -36,9 +36,9 @@ SERVICE_CLIENT_MAP = {
 
 
 def get_keystone_session():
-    """ """
+    """Returns a Keystone session object from environment variables."""
     auth = identity.v3.Password(
-        auth_url=environ.get('OS_AUTH_URL') + '/v3',
+        auth_url=environ.get('OS_AUTH_URL'),
         username=environ.get('OS_USERNAME'),
         password=environ.get('OS_PASSWORD'),
         user_domain_name=environ.get('OS_USER_DOMAIN_NAME'),
@@ -49,7 +49,7 @@ def get_keystone_session():
 
 
 def session_adapter(service_type):
-
+    """Returns a Keystone adapter object."""
     return adapter.Adapter(
         session=get_keystone_session(),
         region_name=environ.get('OS_REGION_NAME'),
@@ -58,7 +58,7 @@ def session_adapter(service_type):
 
 
 def get_client_by_service_type(service_type):
-
+    """Method for getting openstack clients by service type."""
     client = __import__(
         '{}.client'.format(SERVICE_CLIENT_MAP[service_type]),
         fromlist=[''])
