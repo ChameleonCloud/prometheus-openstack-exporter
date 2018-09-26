@@ -5,3 +5,5 @@ simplejson==3.8.1
 pyyaml==3.12
 prometheus-client==0.2.0
 python-ironicclient==1.11.2
+python-blazarclient
+keystoneauth1

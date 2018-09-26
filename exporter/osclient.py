@@ -19,16 +19,57 @@ import dateutil.tz
 import requests
 import simplejson as json
 import logging
+from keystoneauth1 import identity, session, adapter
 from os import environ
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s:%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
 
-def get_python_osclient(service_name):
+
+SERVICE_CLIENT_MAP = {
+    'baremetal': 'ironicclient',
+    'reservation': 'blazarclient',
+    'identity': 'keystoneclient',
+    'networks': 'neutronclient'
+}
+
+
+def get_keystone_session():
+    """ """
+    auth = identity.v3.Password(
+        auth_url=environ.get('OS_AUTH_URL') + '/v3',
+        username=environ.get('OS_USERNAME'),
+        password=environ.get('OS_PASSWORD'),
+        user_domain_name=environ.get('OS_USER_DOMAIN_NAME'),
+        project_name=environ.get('OS_PROJECT_NAME'),
+        project_domain_name=environ.get('OS_PROJECT_DOMAIN_NAME'))
+
+    return session.Session(auth=auth)
+
+
+def session_adapter(service_type):
+
+    return adapter.Adapter(
+        session=get_keystone_session(),
+        region_name=environ.get('OS_REGION_NAME'),
+        service_type=service_type,
+        interface='public')
+
+
+def get_client_by_service_type(service_type):
+
+    client = __import__(
+        '{}.client'.format(SERVICE_CLIENT_MAP[service_type]),
+        fromlist=[''])
+
+    return client.Client(1, session=session_adapter(service_type))
+
+
+def get_ironic_client():
     """Method for getting python client by service name."""
-    client_module = __import__('{}client'.format(service_name))
-    client = client_module.client.get_client(
+    from ironicclient import client
+    return client.get_client(
         1,
         os_region_name=environ['OS_REGION_NAME'],
         os_username=environ['OS_USERNAME'],
@@ -38,7 +79,6 @@ def get_python_osclient(service_name):
         os_user_domain_name=environ['OS_USER_DOMAIN_NAME'],
         os_project_domain_name=environ['OS_PROJECT_DOMAIN_NAME'])
 
-    return client
 
 class KeystoneException(Exception):
     pass
