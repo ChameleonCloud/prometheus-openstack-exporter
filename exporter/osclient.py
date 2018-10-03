@@ -21,9 +21,7 @@ import simplejson as json
 import logging
 from keystoneauth1 import identity, session, adapter
 from os import environ
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s:%(levelname)s:%(message)s")
+
 logger = logging.getLogger(__name__)
 
 

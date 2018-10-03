@@ -18,9 +18,7 @@ from threading import Lock
 from prometheus_client import CollectorRegistry, generate_latest, Gauge
 from time import sleep, time
 import logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s:%(levelname)s:%(message)s")
+
 logger = logging.getLogger(__name__)
 
 

@@ -3,9 +3,7 @@ import json
 from osclient import session_adapter, get_ironic_client
 from prometheus_client import CollectorRegistry, generate_latest, Gauge
 import logging
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s:%(levelname)s:%(message)s")
+
 logger = logging.getLogger(__name__)
 
 class NodeStats(OSBase):
@@ -44,7 +42,7 @@ class NodeStats(OSBase):
         cache_stats = (
             self._apply_labels(node, node_types, project_names_by_node)
             for node in nodes)
-        
+
         return list(cache_stats)
 
     def _apply_labels(self, node, node_types, project_names_by_node):
@@ -68,7 +66,7 @@ class NodeStats(OSBase):
             'region',
             'name',
             'node_id',
-            'maintenance', 
+            'maintenance',
             'provision_state',
             'node_type',
             'gpu',
