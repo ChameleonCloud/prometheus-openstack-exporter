@@ -24,14 +24,14 @@ class NodeStats(OSBase):
         servers = nova_api.get(
             'servers/detail?all_tenants=True&status=ACTIVE').json()['servers']
         projects = keystone_api.get('v3/projects').json()['projects']
+        freepool = nova_api.get('os-aggregates/1').json()['aggregate']['hosts']
 
         node_types = {
                 h['hypervisor_hostname']: {
                     'node_type': h['node_type'],
                     'gpu': h['gpu.gpu'],
                 }
-                for h in hosts
-            }
+                for h in hosts}
 
         hostname_key = 'OS-EXT-SRV-ATTR:hypervisor_hostname'
         project_names_by_id = {p['id']: p['name'] for p in projects}
@@ -40,12 +40,13 @@ class NodeStats(OSBase):
             for s in servers}
 
         cache_stats = (
-            self._apply_labels(node, node_types, project_names_by_node)
+            self._apply_labels(
+                node, node_types, project_names_by_node, freepool)
             for node in nodes)
 
         return list(cache_stats)
 
-    def _apply_labels(self, node, node_types, project_names_by_node):
+    def _apply_labels(self, node, node_types, project_names_by_node, freepool):
 
         return dict(
             name=node.name,
@@ -55,7 +56,8 @@ class NodeStats(OSBase):
             provision_state=node.provision_state,
             node_type=node_types[node.uuid]['node_type'],
             gpu=node_types[node.uuid]['gpu'],
-            project_name=project_names_by_node.get(node.uuid, None))
+            project_name=project_names_by_node.get(node.uuid, None),
+            reserved=not(node.uuid in freepool))
 
     def get_cache_key(self):
         return 'node_stats'
@@ -70,7 +72,8 @@ class NodeStats(OSBase):
             'provision_state',
             'node_type',
             'gpu',
-            'project_name']
+            'project_name',
+            'reserved']
         node_stats_cache = self.get_cache_data()
         for node_stat in node_stats_cache:
             stat_gauge = Gauge(
@@ -86,6 +89,7 @@ class NodeStats(OSBase):
                 node_stat.get('provision_state', ''),
                 node_stat.get('node_type', ''),
                 node_stat.get('gpu', ''),
-                node_stat.get('project_name', '')]
+                node_stat.get('project_name', ''),
+                node_stat.get('reserved', '')]
             stat_gauge.labels(*label_values).set(node_stat['stat_value'])
         return generate_latest(registry)
