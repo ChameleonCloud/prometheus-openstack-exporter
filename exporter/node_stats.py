@@ -52,6 +52,7 @@ class NodeStats(OSBase):
             setattr(node, 'gpu', None)
             setattr(node, 'project_name', None)
             setattr(node, 'reserved', False)
+            return node
 
         return [add_extra_attrs(n) for n in nodes]
 
@@ -66,7 +67,7 @@ class NodeStats(OSBase):
             for h in hosts}
 
     def get_reservations_by_node_id(self):
-        """Return key-value pairs of reserved nodes and their project names."""
+        """Return dict of reserved nodes and their project names."""
         nova_api = session_adapter('compute')
         aggregates = nova_api.get('os-aggregates').json()['aggregates']
         project_names = self.get_project_names_by_id()
@@ -78,7 +79,7 @@ class NodeStats(OSBase):
             if agg['id'] == FREEPOOL_AGGREGATE_ID:
                 continue
 
-            project_id = agg['metadeta']['blazar:owner']
+            project_id = agg['metadata']['blazar:owner']
 
             for node_id in agg['hosts']:
                 reservations[node_id] = project_names[project_id]
@@ -102,7 +103,7 @@ class NodeStats(OSBase):
             node_type=node.node_type,
             gpu=node.gpu,
             project_name=node.project_name,
-            reserved=node.reserverd)
+            reserved=node.reserved)
 
     def get_cache_key(self):
         return 'node_stats'
