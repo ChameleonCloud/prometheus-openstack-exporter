@@ -15,8 +15,7 @@ LABELS = [
     'provision_state',
     'node_type',
     'gpu',
-    'project_name',
-    'reserved']
+    'project_name']
 
 
 class NodeStats(OSBase):
@@ -35,7 +34,6 @@ class NodeStats(OSBase):
             node.node_type = hosts[node.uuid]['node_type']
             node.gpu = hosts[node.uuid]['gpu']
             node.project_name = reservations.get(node.uuid, None)
-            node.reserved = node.project_name is not None
 
         cache_stats = (self._apply_labels(node) for node in nodes)
 
@@ -51,7 +49,6 @@ class NodeStats(OSBase):
             setattr(node, 'node_type', None)
             setattr(node, 'gpu', None)
             setattr(node, 'project_name', None)
-            setattr(node, 'reserved', False)
             return node
 
         return [add_extra_attrs(n) for n in nodes]
@@ -102,8 +99,7 @@ class NodeStats(OSBase):
             provision_state=node.provision_state,
             node_type=node.node_type,
             gpu=node.gpu,
-            project_name=node.project_name,
-            reserved=node.reserved)
+            project_name=node.project_name)
 
     def get_cache_key(self):
         return 'node_stats'
