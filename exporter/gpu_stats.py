@@ -27,12 +27,12 @@ class GPUStats(OSBase):
         cache_stats = []
 
         for gpu_type, metrics in self.get_metrics_by_gpu_type().items():
-            gpu_count = sum([len(v) for k, v in metrics[metrics.keys()[0]]])
+            iter = 0
 
             for metric, gpu_indices in metrics.items():
                 metric_name = str(metric).split('.')[-1]
 
-                for gpu, metric_ids in gpus_indices.items():
+                for gpu, metric_ids in gpu_indices.items():
                     stat = dict(
                         stat_name=metric_name,
                         gpu_type=gpu_type,
@@ -41,12 +41,16 @@ class GPUStats(OSBase):
                     stat['stat_value'] = self.get_aggregate(metric_ids)
                     cache_stats.append(stat)
 
-            count = dict(
-                stat_name='gpu_count',
-                gpu_type=gpu_type,
-                gpu_index=gpu)
+                    # Add gpu count if first iteration
+                    if iter == 0:
+                        count = dict(
+                            stat_name='gpu_count',
+                            gpu_type=gpu_type,
+                            gpu_index=gpu)
 
-            count['stat_value'] = gpu_count
+                        count['stat_value'] = gpu_count
+                        cache_stats.append(count)
+                iter += 1
 
         return list(cache_stats)
 
