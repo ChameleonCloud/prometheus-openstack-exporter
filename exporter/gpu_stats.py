@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 GNOCCHI_ENDPOINT = environ['GNOCCHI_ENDPOINT']
 GRANULARITY = 60
-AGGREGATION_METHOD = 'max'
+AGGREGATION_METHOD = 'mean'
 LABELS = ['region', 'stat_name', 'gpu_type', 'gpu_index']
 
 
