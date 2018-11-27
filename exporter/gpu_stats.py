@@ -48,7 +48,7 @@ class GPUStats(OSBase):
                             gpu_type=gpu_type,
                             gpu_index=gpu)
 
-                        count['stat_value'] = gpu_count
+                        count['stat_value'] = len(metric_ids)
                         cache_stats.append(count)
                 iter += 1
 
@@ -99,7 +99,7 @@ class GPUStats(OSBase):
         aggregation_param = 'aggregation={}'.format(AGGREGATION_METHOD)
         granularity_param = 'granularity={}'.format(str(GRANULARITY))
 
-        url = "{endpoint}?{metrics}&{aggregation}&{granularity}".format(
+        url = "{endpoint}?{metrics}&{aggregation}&fill=0&{granularity}".format(
             endpoint=GNOCCHI_ENDPOINT + '/aggregation/metric',
             metrics=metric_params,
             aggregation=aggregation_param,
