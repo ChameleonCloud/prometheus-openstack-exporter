@@ -30,6 +30,7 @@ from nova_services import NovaServiceStats
 from cinder_services import CinderServiceStats
 from hypervisor_stats import HypervisorStats
 from node_stats import NodeStats
+from gpu_stats import GPUStats
 
 import logging
 # logging.basicConfig(
@@ -140,6 +141,8 @@ if __name__ == '__main__':
 
     node_stats = NodeStats(oscache, osclient)
     collectors.append(node_stats)
+    gpu_stats = GPUStats(oscache, osclient)
+    collectors.append(gpu_stats)
     check_os_api = CheckOSApi(oscache, osclient)
     collectors.append(check_os_api)
     neutron_agent_stats = NeutronAgentStats(oscache, osclient)
