@@ -19,7 +19,7 @@ class GPUStats(OSBase):
     def __init__(self, oscache, osclient):
         super(GPUStats, self).__init__(oscache, osclient)
 
-        self.gnochi_api = session_adapter('metric')
+        self.gnocchi_api = session_adapter('metric')
 
     def build_cache_data(self):
         """Return list of stats to cache"""
