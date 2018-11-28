@@ -1,6 +1,6 @@
 from base import OSBase
 from collections import defaultdict
-from osclient import get_keystone_session, session_adapter
+from osclient import session_adapter
 from os import environ
 from prometheus_client import CollectorRegistry, generate_latest, Gauge
 import logging
@@ -20,7 +20,7 @@ class GPUStats(OSBase):
     def __init__(self, oscache, osclient):
         super(GPUStats, self).__init__(oscache, osclient)
 
-        self.sess = get_keystone_session()
+        self.gnochi_api = session_adapter('metric')
 
     def build_cache_data(self):
         """Return list of stats to cache"""
@@ -66,8 +66,8 @@ class GPUStats(OSBase):
 
     def get_metrics_by_gpu_type(self):
         """Return dict of metrics for resource type cuda from gnocchi."""
-        cuda_resouce_url = GNOCCHI_ENDPOINT + '/search/resource/cuda'
-        req = self.sess.post(cuda_resouce_url)
+        cuda_resouce_url = 'v1/search/resource/cuda'
+        req = self.gnocchi_api.post(cuda_resouce_url)
 
         resources = req.json()
         resource_gpu_types = self.get_gpu_type_by_resource_id()
@@ -100,12 +100,12 @@ class GPUStats(OSBase):
         granularity_param = 'granularity={}'.format(str(GRANULARITY))
 
         url = "{endpoint}?{metrics}&{aggregation}&fill=0&{granularity}".format(
-            endpoint=GNOCCHI_ENDPOINT + '/aggregation/metric',
+            endpoint='v1/aggregation/metric',
             metrics=metric_params,
             aggregation=aggregation_param,
             granularity=granularity_param)
 
-        req = self.sess.get(url)
+        req = self.gnocchi_api.get(url)
         stat_value = req.json()[-1][-1]
 
         return stat_value
