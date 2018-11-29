@@ -73,7 +73,7 @@ class NodeStats(OSBase):
 
         for agg in aggregates:
             # Ignore projects in freepool
-            if agg['id'] == FREEPOOL_AGGREGATE_ID:
+            if agg['id'] == FREEPOOL_AGGREGATE_ID or not agg['hosts']:
                 continue
 
             project_id = agg['metadata']['blazar:owner']
