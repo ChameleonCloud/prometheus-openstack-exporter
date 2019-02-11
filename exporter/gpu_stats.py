@@ -9,6 +9,7 @@ import re
 logger = logging.getLogger(__name__)
 
 GRANULARITY = 60
+FILL = 'null'
 AGGREGATION_METHOD = 'mean'
 LABELS = ['region', 'stat_name', 'gpu_type', 'gpu_index']
 
@@ -96,12 +97,14 @@ class GPUStats(OSBase):
         """Get aggregation measures for one or more metrics."""
         metric_params = 'metric={}'.format('&metric='.join(metric_ids))
         aggregation_param = 'aggregation={}'.format(AGGREGATION_METHOD)
+        fill_param = 'fill={}'.format(FILL)
         granularity_param = 'granularity={}'.format(str(GRANULARITY))
 
-        url = "{endpoint}?{metrics}&{aggregation}&fill=0&{granularity}".format(
+        url = "{endpoint}?{metrics}&{aggregation}&{fill}&{granularity}".format(
             endpoint='v1/aggregation/metric',
             metrics=metric_params,
             aggregation=aggregation_param,
+            fill=fill_param,
             granularity=granularity_param)
 
         req = self.gnocchi_api.get(url)
