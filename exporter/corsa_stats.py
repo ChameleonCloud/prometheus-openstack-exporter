@@ -62,8 +62,6 @@ class CorsaStats(OSBase):
         super(CorsaStats, self).__init__(oscache, osclient)
 
         self.corsa_configs = corsa_configs
-        self.keystone_api = session_adapter('identity')
-        self.nova_api = session_adapter('compute')
 
     def build_cache_data(self):
         """Return list of stats to cache."""
@@ -105,53 +103,6 @@ class CorsaStats(OSBase):
 
                     cache_stats.append(corsa_stat)
         return cache_stats
-
-    def get_project_names_by_node(self):
-        """Return dict of reserved nodes and their project names."""
-        aggregates = nova_api.get('os-aggregates').json()['aggregates']
-        project_names = self.get_projects_by_id()
-
-        reservations = dict()
-
-        for agg in aggregates:
-            # Ignore projects in freepool
-            if agg['id'] == FREEPOOL_AGGREGATE_ID or not agg['hosts']:
-                continue
-
-            project_id = agg['metadata']['blazar:owner']
-
-            for node_id in agg['hosts']:
-                reservations[node_id] = project_names[project_id]
-
-        return reservations
-
-    def get_nodes_by_corsa_port(self):
-        nodes = self.ironic_client_node.list()
-        ports = self.ironic_client.port.list(detail=True)
-        project_names = self.get_project_names_by_node()
-
-        for node in nodes:
-            setattr(node, 'port', )
-            setattr(node, 'project_name', project_names.get())
-
-        return nodes
-
-    def get_ports_by_corsa_port(self):
-        """Return mapping of Corsa port numbers to baremetal port uuids."""
-        ports = self.ironic_client.port.list(detail=True)
-        return {
-            p.local_link_connection['port_id'].split()[-1]: p
-            for p in ports}
-
-    def get_nodes_by_id(self):
-        """Return dicitonary of baremetal node objects by uuid."""
-        nodes = self.ironic_client.node.list()
-        return {n.uuid: n for n in nodes}
-
-    def get_projects_by_id(self):
-        """Return mapping of project uuids to project names."""
-        projects = self.keystone_api.get('v3/projects').json()['projects']
-        return {p['id']: p['name'] for p in projects}
 
     def get_cache_key(self):
         return 'corsa_stats'

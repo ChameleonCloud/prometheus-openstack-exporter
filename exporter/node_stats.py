@@ -1,6 +1,7 @@
 from base import OSBase
 import json
 from osclient import session_adapter, get_ironic_client
+from utils import node_details
 from prometheus_client import CollectorRegistry, generate_latest, Gauge
 import logging
 
@@ -26,69 +27,13 @@ class NodeStats(OSBase):
 
     def build_cache_data(self):
         """Return list of stats to cache."""
-        nodes = self.get_nodes()
-        hosts = self.get_hosts_by_node_id()
-        reservations = self.get_reservations_by_node_id()
-
-        for node in nodes:
-            node.node_type = hosts[node.uuid]['node_type']
-            node.gpu = hosts[node.uuid]['gpu']
-            node.project_name = reservations.get(node.uuid, None)
+        nodes = node_details.get_nodes(detail=True)
+        node_details.add_node_type(nodes)
+        node_details.add_project_names(nodes)
 
         cache_stats = (self._apply_labels(node) for node in nodes)
 
         return list(cache_stats)
-
-    def get_nodes(self):
-        """Return list of node objects returned by ironic client."""
-        ironic_client = get_ironic_client()
-        nodes = ironic_client.node.list(detail=True)
-
-        # Add extra attrs to node objects
-        def add_extra_attrs(node):
-            setattr(node, 'node_type', None)
-            setattr(node, 'gpu', None)
-            setattr(node, 'project_name', None)
-            return node
-
-        return [add_extra_attrs(n) for n in nodes]
-
-    def get_hosts_by_node_id(self):
-        """Return dict of blazar hosts by hypervisor hostname."""
-        blazar_api = session_adapter('reservation')
-        hosts = blazar_api.get('os-hosts?detail=True').json()['hosts']
-
-        return {
-            h['hypervisor_hostname']:
-                {'node_type': h['node_type'], 'gpu': h['gpu.gpu']}
-            for h in hosts}
-
-    def get_reservations_by_node_id(self):
-        """Return dict of reserved nodes and their project names."""
-        nova_api = session_adapter('compute')
-        aggregates = nova_api.get('os-aggregates').json()['aggregates']
-        project_names = self.get_project_names_by_id()
-
-        reservations = dict()
-
-        for agg in aggregates:
-            # Ignore projects in freepool
-            if agg['id'] == FREEPOOL_AGGREGATE_ID or not agg['hosts']:
-                continue
-
-            project_id = agg['metadata']['blazar:owner']
-
-            for node_id in agg['hosts']:
-                reservations[node_id] = project_names[project_id]
-
-        return reservations
-
-    def get_project_names_by_id(self):
-        """Return dict of project id and names."""
-        keystone_api = session_adapter('identity')
-        projects = keystone_api.get('v3/projects').json()['projects']
-
-        return {p['id']: p['name'] for p in projects}
 
     def _apply_labels(self, node):
         return dict(

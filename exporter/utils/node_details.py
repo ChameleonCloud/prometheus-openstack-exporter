@@ -1,15 +1,23 @@
-from osclient import get_ironic_client, session_adapter
+from exporter.osclient import get_ironic_client, session_adapter
+
+FREEPOOL_AGGREGATE_ID = 1
+
 
 def get_nodes(detail=False):
-    ironic = get_ironic_client()
-    return ironic.node.list(detail=detail)
+    """Return list of ironic client node objects."""
+    ironic_client = get_ironic_client()
+    return ironic_client.node.list(detail=detail)
 
 
 def add_project_names(nodes):
+    """Add project names to list of ironic client node objects."""
     nova_api = session_adapter('compute')
-    aggregates = nova_api.get('os-aggregates').json()['aggregates']
-    project_names = self.get_projects_by_id()
+    keystone_api = session_adapter('identity')
 
+    aggregates = nova_api.get('os-aggregates').json()['aggregates']
+    projects = keystone_api.get('v3/projects').json()['projects']
+
+    project_names = {p['id']: p['name'] for p in projects}
     reservations = dict()
 
     for agg in aggregates:
@@ -23,8 +31,34 @@ def add_project_names(nodes):
             reservations[node_id] = project_names[project_id]
 
     for node in nodes:
-        setattr()
+        if node.uuid in reservations:
+            setattr(node, 'project_name', reservations[node.uuid])
+        else:
+            setattr(node, 'project_name', None)
 
 
-def add_port_info(nodes):
-    pass
+def add_node_type(nodes):
+    """Add node_type to list of ironic client node objects."""
+    blazar_api = session_adapter('reservation')
+    hosts = blazar_api.get('os-hosts?detail=True').json()['hosts']
+
+    hosts_by_node = {
+        h['hypervisor_hostname']:
+            {'node_type': h['node_type'], 'gpu': h['gpu.gpu']}
+        for h in hosts
+    }
+
+    for node in nodes:
+        setattr(node, 'node_type', hosts_by_node[node.uuid]['node_type'])
+        setattr(node, 'gpu', hosts_by_node[node.uuid]['gpu'])
+
+
+def add_port_info(nodes, detail=True):
+    """Add ironic port object to list of ironic client node objects."""
+    ironic_client = get_ironic_client()
+    ports = ironic_client.port.list(detail=detail)
+
+    ports_by_node = {p.node_uuid: p for p in ports}
+
+    for node in nodes:
+        setattr(node, 'port', ports_by_node[node.uuid])
