@@ -138,7 +138,6 @@ if __name__ == '__main__':
         os_retries)
     oscache = OSCache(os_polling_interval, os_region)
     collectors.append(oscache)
-
     node_stats = NodeStats(oscache, osclient)
     collectors.append(node_stats)
     gpu_stats = GPUStats(oscache, osclient)
@@ -157,6 +156,10 @@ if __name__ == '__main__':
         os_cpu_overcomit_ratio,
         os_ram_overcomit_ratio)
     collectors.append(hypervisor_stats)
+
+    if 'switch_configs' in config:
+        corsa_stats = CorsaStats(oscache, osclient, config['switch_configs'])
+        collectors.append(corsa_stat)
 
     oscache.start()
 
