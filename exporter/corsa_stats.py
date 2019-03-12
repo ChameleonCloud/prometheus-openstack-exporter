@@ -1,5 +1,5 @@
 from base import OSBase
-from osclient import session_adapter, CorsaClient
+from osclient import session_adapter, get_ironic_client
 from os import environ
 from prometheus_client import CollectorRegistry, generate_latest, Gauge
 import logging
@@ -60,7 +60,7 @@ class CorsaStats(OSBase):
         super(CorsaStats, self).__init__(oscache, osclient)
 
         self.corsa_configs = corsa_configs
-        self.baremetal_api = session_adapter('baremetal')
+        self.ironic_client = get_ironic_client()
         self.keystone_api = session_adapter('identity')
 
     def build_cache_data(self):
@@ -73,7 +73,7 @@ class CorsaStats(OSBase):
 
         for switch in self.corsa_configs:
             corsa_client = CorsaClient(
-                switch.get('ip'),
+                switch.get('address'),
                 switch.get('token'),
                 verify=switch.get('ssl_verify', True))
 
@@ -84,33 +84,42 @@ class CorsaStats(OSBase):
                     if key not in CORSA_STATS_TO_COLLECT:
                         continue
 
-                    port = ports[stat['port']]
-                    node = nodes[port['node_id']]
+                    port = ports.get(stat['port'])
+
+                    if not port:
+                        continue
+                    if port.switch_info != switch['name']:
+                        continue
+
+                    node = nodes[port.uuid]
                     project = node.get(node['project_id'], {})
 
                     corsa_stat = dict(
                         stat_name='corsa_{}'.format(key),
-                        switch=switch.get('name'),
-                        port=stat.get('port'),
-                        node=node.get('name'),
-                        provision_stat=node.get('provision_state'),
-                        project_name=project.get('name'),
+                        switch=switch['name'],
+                        port=stat['port'],
+                        node=node.name,
+                        provision_stat=node.provision_state,
+                        project_name=project['name'],
                         stat_value=value)
 
                     cache_stats.append(corsa_stat)
         return cache_stats
 
     def get_ports_by_corsa_idx(self):
-        ports = self.baremetal_api.get('v1/ports/detail').json()['ports']
+        """Return mapping of Corsa port numbers to baremetal port uuids."""
+        ports = self.ironic_client.port.list(detail=True)
         return {
-            p['local_link_connection']['port_id'].split()[-1]: p['node_id']
+            p.local_link_connection['port_id'].split()[-1]: p
             for p in ports}
 
     def get_nodes_by_id(self):
-        nodes = self.baremetal_api.get('v1/nodes').json()['nodes']
-        return {n['id']: n for n in nodes}
+        """Return dicitonary of baremetal node objects by uuid."""
+        nodes = self.ironic_client.node.list()
+        return {n.uuid: n for n in nodes}
 
     def get_projects_by_id(self):
+        """Return mapping of project uuids to project names."""
         projects = self.keystone_api.get('v3/projects').json()['projects']
         return {p['id']: p['name'] for p in projects}
 

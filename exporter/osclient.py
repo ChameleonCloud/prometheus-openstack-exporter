@@ -69,6 +69,7 @@ def get_ironic_client():
     from ironicclient import client
     return client.get_client(
         1,
+        os_ironic_api_version=environ.get('OS_IRONIC_API_VERSION'),
         os_region_name=environ['OS_REGION_NAME'],
         os_username=environ['OS_USERNAME'],
         os_password=environ['OS_PASSWORD'],
@@ -76,33 +77,6 @@ def get_ironic_client():
         os_project_name=environ['OS_PROJECT_NAME'],
         os_user_domain_name=environ['OS_USER_DOMAIN_NAME'],
         os_project_domain_name=environ['OS_PROJECT_DOMAIN_NAME'])
-
-
-class CorsaClient():
-    """Corsa API Client"""
-    
-    def __init__(self, address, token, name=None, verify=None):
-        self.address = address
-        self.token = token
-        self.verify = verify
-        self.api_base = '/api/v1'
-
-        if name:
-            self.name = name
-        else:
-            self.name = address
-
-    def get_path(self, path):
-        headers = {'Authorization': self.token}
-        url = '{}{}{}'.format(self.address, self.api_base, path)
-        resp = requests.get(url, headers=headers, verify=self.verify)
-        return resp.json()
-
-    def get_stats_ports(self, port=None):
-        path = '/stats/ports'
-        if port:
-            path = path + '?port=' + str(port)
-        return self.get_path(path)
 
 
 class KeystoneException(Exception):
