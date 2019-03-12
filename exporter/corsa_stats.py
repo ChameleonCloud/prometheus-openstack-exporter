@@ -91,7 +91,11 @@ class CorsaStats(OSBase):
                     if key not in CORSA_STATS_TO_COLLECT:
                         continue
 
-                    node = switch_nodes[stat['port']]
+                    node = switch_nodes.get(stat['port'])
+
+                    if not node:
+                        continue
+
                     corsa_stat = dict(
                         stat_name='corsa_{}'.format(key),
                         switch=switch['name'],
@@ -108,7 +112,7 @@ class CorsaStats(OSBase):
         return 'corsa_stats'
 
     def get_stats(self):
-        registry = CollectorRegistry
+        registry = CollectorRegistry()
         corsa_stats_cache = self.get_cache_data()
         for corsa_stat in corsa_stats_cache:
             stat_gauge = Gauge(
