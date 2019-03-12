@@ -2,8 +2,10 @@ from base import OSBase
 from osclient import session_adapter, get_ironic_client
 from os import environ
 from prometheus_client import CollectorRegistry, generate_latest, Gauge
+from utils import node_details
 import logging
 import re
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -60,22 +62,29 @@ class CorsaStats(OSBase):
         super(CorsaStats, self).__init__(oscache, osclient)
 
         self.corsa_configs = corsa_configs
-        self.ironic_client = get_ironic_client()
         self.keystone_api = session_adapter('identity')
+        self.nova_api = session_adapter('compute')
 
     def build_cache_data(self):
         """Return list of stats to cache."""
         cache_stats = []
 
-        ports = self.get_ports_by_corsa_idx()
-        nodes = self.get_nodes_by_id()
-        projects = self.get_projects_by_id()
+        nodes = node_details.get_nodes()
+        node_details.add_project_names(nodes)
+        node_details.add_port_info(nodes)
 
         for switch in self.corsa_configs:
             corsa_client = CorsaClient(
                 switch.get('address'),
                 switch.get('token'),
                 verify=switch.get('ssl_verify', True))
+
+            switch_nodes = {
+                n.port.local_link_connection['port_id'].split()[-1]: n
+                for n in nodes
+                if n.port.local_link_connection[
+                    'switch_info'] == switch['name']
+            }
 
             port_stats = corsa_client.get_stats_ports()
 
@@ -84,29 +93,50 @@ class CorsaStats(OSBase):
                     if key not in CORSA_STATS_TO_COLLECT:
                         continue
 
-                    port = ports.get(stat['port'])
-
-                    if not port:
-                        continue
-                    if port.switch_info != switch['name']:
-                        continue
-
-                    node = nodes[port.uuid]
-                    project = node.get(node['project_id'], {})
-
+                    node = switch_nodes[stat['port']]
                     corsa_stat = dict(
                         stat_name='corsa_{}'.format(key),
                         switch=switch['name'],
                         port=stat['port'],
                         node=node.name,
                         provision_stat=node.provision_state,
-                        project_name=project['name'],
+                        project_name=node.project_name,
                         stat_value=value)
 
                     cache_stats.append(corsa_stat)
         return cache_stats
 
-    def get_ports_by_corsa_idx(self):
+    def get_project_names_by_node(self):
+        """Return dict of reserved nodes and their project names."""
+        aggregates = nova_api.get('os-aggregates').json()['aggregates']
+        project_names = self.get_projects_by_id()
+
+        reservations = dict()
+
+        for agg in aggregates:
+            # Ignore projects in freepool
+            if agg['id'] == FREEPOOL_AGGREGATE_ID or not agg['hosts']:
+                continue
+
+            project_id = agg['metadata']['blazar:owner']
+
+            for node_id in agg['hosts']:
+                reservations[node_id] = project_names[project_id]
+
+        return reservations
+
+    def get_nodes_by_corsa_port(self):
+        nodes = self.ironic_client_node.list()
+        ports = self.ironic_client.port.list(detail=True)
+        project_names = self.get_project_names_by_node()
+
+        for node in nodes:
+            setattr(node, 'port', )
+            setattr(node, 'project_name', project_names.get())
+
+        return nodes
+
+    def get_ports_by_corsa_port(self):
         """Return mapping of Corsa port numbers to baremetal port uuids."""
         ports = self.ironic_client.port.list(detail=True)
         return {
