@@ -69,6 +69,7 @@ def get_ironic_client():
     from ironicclient import client
     return client.get_client(
         1,
+        os_ironic_api_version=environ.get('OS_IRONIC_API_VERSION'),
         os_region_name=environ['OS_REGION_NAME'],
         os_username=environ['OS_USERNAME'],
         os_password=environ['OS_PASSWORD'],

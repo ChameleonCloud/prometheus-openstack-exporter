@@ -31,6 +31,7 @@ from cinder_services import CinderServiceStats
 from hypervisor_stats import HypervisorStats
 from node_stats import NodeStats
 from gpu_stats import GPUStats
+from corsa_stats import CorsaStats
 
 import logging
 # logging.basicConfig(
@@ -91,6 +92,9 @@ if __name__ == '__main__':
         description='Prometheus OpenStack exporter',
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--config-file', nargs='?',
+                        default="{}/config.yml".format(
+                            os.path.dirname(
+                                os.path.realpath(__file__))),
                         help='Configuration file path',
                         type=argparse.FileType('r'),
                         required=False)
@@ -138,7 +142,6 @@ if __name__ == '__main__':
         os_retries)
     oscache = OSCache(os_polling_interval, os_region)
     collectors.append(oscache)
-
     node_stats = NodeStats(oscache, osclient)
     collectors.append(node_stats)
     gpu_stats = GPUStats(oscache, osclient)
@@ -157,6 +160,11 @@ if __name__ == '__main__':
         os_cpu_overcomit_ratio,
         os_ram_overcomit_ratio)
     collectors.append(hypervisor_stats)
+
+    if 'switch_corsa' in config:
+        corsa_stats = CorsaStats(
+            oscache, osclient, config['switch_corsa']['switches'])
+        collectors.append(corsa_stats)
 
     oscache.start()
 
