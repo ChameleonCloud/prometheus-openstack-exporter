@@ -7,7 +7,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-FREEPOOL_AGGREGATE_ID = 1
 LABELS = [
     'region',
     'name',
@@ -28,8 +27,6 @@ class NodeStats(OSBase):
     def build_cache_data(self):
         """Return list of stats to cache."""
         nodes = node_details.get_nodes(detail=True)
-        node_details.add_node_type(nodes)
-        node_details.add_project_names(nodes)
 
         cache_stats = (self._apply_labels(node) for node in nodes)
 
@@ -43,7 +40,7 @@ class NodeStats(OSBase):
             maintenance=node.maintenance,
             provision_state=node.provision_state,
             node_type=node.node_type,
-            gpu=node.gpu,
+            gpu='gpu_' in node.node_type,
             project_name=node.project_name)
 
     def get_cache_key(self):

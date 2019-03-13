@@ -6,7 +6,12 @@ FREEPOOL_AGGREGATE_ID = 1
 def get_nodes(detail=False):
     """Return list of ironic client node objects."""
     ironic_client = get_ironic_client()
-    return ironic_client.node.list(detail=detail)
+
+    nodes = ironic_client.node.list(detail=detail)
+    add_project_names(nodes)
+    add_node_type(nodes)
+
+    return nodes
 
 
 def add_project_names(nodes):
@@ -42,15 +47,10 @@ def add_node_type(nodes):
     blazar_api = session_adapter('reservation')
     hosts = blazar_api.get('os-hosts?detail=True').json()['hosts']
 
-    hosts_by_node = {
-        h['hypervisor_hostname']:
-            {'node_type': h['node_type'], 'gpu': h['gpu.gpu']}
-        for h in hosts
-    }
+    node_types = {h['hypervisor_hostname']: h['node_type'] for h in hosts}
 
     for node in nodes:
-        setattr(node, 'node_type', hosts_by_node[node.uuid]['node_type'])
-        setattr(node, 'gpu', hosts_by_node[node.uuid]['gpu'])
+        setattr(node, 'node_type', node_types[node.uuid])
 
 
 def add_port_info(nodes, detail=True):

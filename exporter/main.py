@@ -161,8 +161,9 @@ if __name__ == '__main__':
         os_ram_overcomit_ratio)
     collectors.append(hypervisor_stats)
 
-    if 'switches' in config:
-        corsa_stats = CorsaStats(oscache, osclient, config['switches'])
+    if 'switch_corsa' in config:
+        corsa_stats = CorsaStats(
+            oscache, osclient, config['switch_corsa']['switches'])
         collectors.append(corsa_stats)
 
     oscache.start()

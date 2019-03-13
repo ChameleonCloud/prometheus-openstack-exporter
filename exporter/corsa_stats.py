@@ -66,10 +66,7 @@ class CorsaStats(OSBase):
     def build_cache_data(self):
         """Return list of stats to cache."""
         cache_stats = []
-
         nodes = node_details.get_nodes()
-        node_details.add_project_names(nodes)
-        node_details.add_port_info(nodes)
 
         for switch in self.corsa_configs:
             corsa_client = CorsaClient(
@@ -77,11 +74,13 @@ class CorsaStats(OSBase):
                 switch.get('token'),
                 verify=switch.get('ssl_verify', True))
 
+            def check_switch(switch_name):
+                return switch_name == switch['name']
+
             switch_nodes = {
                 n.port.local_link_connection['port_id'].split()[-1]: n
                 for n in nodes
-                if n.port.local_link_connection[
-                    'switch_info'] == switch['name']
+                if check_switch(n.port.local_link_connection['switch_info'])
             }
 
             port_stats = corsa_client.get_stats_ports()
@@ -101,7 +100,7 @@ class CorsaStats(OSBase):
                         switch=switch['name'],
                         port=stat['port'],
                         node=node.name,
-                        provision_stat=node.provision_state,
+                        provision_state=node.provision_state,
                         project_name=node.project_name,
                         stat_value=value)
 
