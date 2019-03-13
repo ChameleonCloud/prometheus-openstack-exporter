@@ -1,4 +1,4 @@
-from exporter.osclient import get_ironic_client, session_adapter
+from osclient import get_ironic_client, session_adapter
 
 FREEPOOL_AGGREGATE_ID = 1
 
