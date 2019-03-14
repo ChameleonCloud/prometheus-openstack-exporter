@@ -67,6 +67,7 @@ class CorsaStats(OSBase):
         """Return list of stats to cache."""
         cache_stats = []
         nodes = node_details.get_nodes()
+	node_details.add_port_info(nodes)
 
         for switch in self.corsa_configs:
             corsa_client = CorsaClient(
