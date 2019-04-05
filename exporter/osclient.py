@@ -35,8 +35,13 @@ SERVICE_CLIENT_MAP = {
 
 def get_keystone_session():
     """Returns a Keystone session object from environment variables."""
+    os_auth_url = environ.get('OS_AUTH_URL')
+
+    if os_auth_url[-3:] != '/v3':
+        os_auth_url += '/v3'
+
     auth = identity.v3.Password(
-        auth_url=environ.get('OS_AUTH_URL'),
+        auth_url=os_auth_url,
         username=environ.get('OS_USERNAME'),
         password=environ.get('OS_PASSWORD'),
         user_domain_name=environ.get('OS_USER_DOMAIN_NAME'),
