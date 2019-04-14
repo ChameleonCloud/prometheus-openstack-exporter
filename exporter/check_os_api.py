@@ -30,6 +30,7 @@ class CheckOSApi(OSBase):
         'heat': {'path': '/', 'expect': [300], 'name': 'heat-api'},
         'heat-cfn': {'path': '/', 'expect': [300], 'name': 'heat-cfn-api'},
         'glance': {'path': '/', 'expect': [300], 'name': 'glance-api'},
+        'blazar': {'path': '/', 'expect': [204, 300], 'name': 'blazar-api'},
         'cinder': {'path': '/', 'expect': [200, 300], 'name': 'cinder-api'},
         'cinderv2': {
             'path': '/', 'expect': [200, 300], 'name': 'cinder-v2-api'},
@@ -48,7 +49,7 @@ class CheckOSApi(OSBase):
         'contrail_analytics': {'path': '/', 'expect': [200], 'name': 'contrail-analytics-api'},
         'contrail_config': {'path': '/', 'expect': [200], 'name': 'contrail-config-api'},
         'congress': {'path': '/', 'expect': [200], 'name': 'congress-api'},
-        'placement': {'path': '/', 'expect': [401], 'name': 'placement-api'},
+        'placement': {'path': '/', 'expect': [200], 'name': 'placement-api'},
     }
 
     def _service_url(self, endpoint, path):
