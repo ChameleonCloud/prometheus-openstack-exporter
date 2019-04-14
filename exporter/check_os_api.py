@@ -119,8 +119,7 @@ class CheckOSApi(OSBase):
                 check_api_data['region'],
                 check_api_data['url'],
                 check_api_data['service']]
-            gague_name = self.gauge_name_sanitize(
-                "check_{}_api".format(check_api_data['service']))
+            gague_name = self.gauge_name_sanitize('check_api')
             check_gauge = Gauge(
                 gague_name,
                 'Openstack API check. fail = 0, ok = 1 and unknown = 2',
