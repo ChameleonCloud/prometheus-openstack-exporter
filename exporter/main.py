@@ -34,9 +34,6 @@ from gpu_stats import GPUStats
 from corsa_stats import CorsaStats
 
 import logging
-# logging.basicConfig(
-#     level=logging.DEBUG,
-#     format="%(asctime)s:%(levelname)s:%(message)s")
 logger = logging.getLogger(__name__)
 
 collectors = []
@@ -98,7 +95,19 @@ if __name__ == '__main__':
                         help='Configuration file path',
                         type=argparse.FileType('r'),
                         required=False)
+    parser.add_argument('-v', '--verbose', help='increase output verbosity',
+                        action='store_true')
     args = parser.parse_args()
+
+    if args.verbose:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
+
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s:%(levelname)s:%(message)s")
+
     config = {}
     if args.config_file:
         config = yaml.safe_load(args.config_file.read())
