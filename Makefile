@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-DOCKER_REGISTRY            ?= quay.io
-IMAGE_PREFIX               ?= attcomdev
+DOCKER_REGISTRY            ?= docker.chameleoncloud.org
+IMAGE_PREFIX               ?= chameleoncloud
 IMAGE_TAG                  ?= latest
 HELM                       ?= helm
 LABEL                      ?= commit-id
@@ -46,6 +46,10 @@ run:
 .PHONY: build_prometheus-openstack-exporter
 build_prometheus-openstack-exporter:
 	docker build -t $(IMAGE) --label $(LABEL) -f Dockerfile .
+
+.PHONY: publish_prometheus-openstack-exporter
+publish_prometheus-openstack-exporter:
+	docker publish $(IMAGE)
 
 .PHONY: clean
 clean:
