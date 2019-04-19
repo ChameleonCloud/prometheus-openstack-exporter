@@ -30,7 +30,10 @@ class CheckOSApi(OSBase):
         'heat': {'path': '/', 'expect': [300], 'name': 'heat-api'},
         'heat-cfn': {'path': '/', 'expect': [300], 'name': 'heat-cfn-api'},
         'glance': {'path': '/', 'expect': [300], 'name': 'glance-api'},
-        'blazar': {'path': '/', 'expect': [204, 300], 'name': 'blazar-api'},
+        'blazar': {
+            'path': '/', 'expect': [204, 300],
+            'name': 'blazar-api',
+            'auth': True},
         'cinder': {'path': '/', 'expect': [200, 300], 'name': 'cinder-api'},
         'cinderv2': {
             'path': '/', 'expect': [200, 300], 'name': 'cinder-v2-api'},
