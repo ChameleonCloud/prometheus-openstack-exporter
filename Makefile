@@ -49,7 +49,7 @@ build_prometheus-openstack-exporter:
 
 .PHONY: publish_prometheus-openstack-exporter
 publish_prometheus-openstack-exporter:
-	docker publish $(IMAGE)
+	docker push $(IMAGE)
 
 .PHONY: clean
 clean:
