@@ -32,6 +32,7 @@ from hypervisor_stats import HypervisorStats
 from node_stats import NodeStats
 from gpu_stats import GPUStats
 from corsa_stats import CorsaStats
+from launch_failures import LaunchFailures
 
 import logging
 logger = logging.getLogger(__name__)
@@ -169,6 +170,8 @@ if __name__ == '__main__':
         os_cpu_overcomit_ratio,
         os_ram_overcomit_ratio)
     collectors.append(hypervisor_stats)
+    launch_failures = LaunchFailures(oscache, osclient)
+    collectors.append(launch_failures)
 
     if 'switch_corsa' in config:
         corsa_stats = CorsaStats(
