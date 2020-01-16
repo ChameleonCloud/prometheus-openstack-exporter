@@ -14,7 +14,6 @@ LABELS = [
     'maintenance',
     'provision_state',
     'node_type',
-    'gpu',
     'project_name']
 
 
@@ -40,7 +39,6 @@ class NodeStats(OSBase):
             maintenance=node.maintenance,
             provision_state=node.provision_state,
             node_type=node.node_type,
-            gpu='gpu_' in node.node_type,
             project_name=node.project_name)
 
     def get_cache_key(self):
@@ -48,15 +46,16 @@ class NodeStats(OSBase):
 
     def get_stats(self):
         registry = CollectorRegistry()
-        labels = LABELS
-        node_stats_cache = self.get_cache_data()
-        for node_stat in node_stats_cache:
-            stat_gauge = Gauge(
-                'openstack_node_totals',
-                'OpenStack Ironic Nodes statistic',
-                labels,
-                registry=registry)
+        
+        stat_gauge = Gauge(
+            'openstack_node_totals',
+            'OpenStack Ironic Nodes statistic',
+            LABELS,
+            registry=registry)
+
+        for node_stat in self.get_cache_data():
             label_values = [self.osclient.region] + [
                 node_stat.get(x, '') for x in LABELS[1:]]
             stat_gauge.labels(*label_values).set(node_stat['stat_value'])
+
         return generate_latest(registry)
