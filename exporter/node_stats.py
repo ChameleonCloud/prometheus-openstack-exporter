@@ -13,6 +13,7 @@ LABELS = [
     'node_id',
     'maintenance',
     'provision_state',
+    'console_enabled',
     'node_type',
     'project_name']
 
@@ -37,6 +38,7 @@ class NodeStats(OSBase):
             node_id=node.uuid,
             maintenance=node.maintenance,
             provision_state=node.provision_state,
+            console_enabled=node.console_enabled,
             node_type=node.node_type,
             project_name=node.project_name)
 
