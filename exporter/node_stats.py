@@ -35,7 +35,6 @@ class NodeStats(OSBase):
         return dict(
             name=node.name,
             node_id=node.uuid,
-            stat_value=1.0,
             maintenance=node.maintenance,
             provision_state=node.provision_state,
             node_type=node.node_type,
@@ -56,6 +55,6 @@ class NodeStats(OSBase):
         for node_stat in self.get_cache_data():
             label_values = [self.osclient.region] + [
                 node_stat.get(x, '') for x in LABELS[1:]]
-            stat_gauge.labels(*label_values).set(node_stat['stat_value'])
+            stat_gauge.labels(*label_values).set(1.0)
 
         return generate_latest(registry)
